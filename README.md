@@ -1,2 +1,4 @@
-# electricExperiment_19_2
-electricExperiment Konkuk univ. 19-2
+# Electric Experiment 19-2 computer vision class
+Electric Experiment Konkuk univ. 19-2
+computer vision class 
+professor won jun kim
