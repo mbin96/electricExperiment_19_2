@@ -154,7 +154,7 @@
     <ClCompile Include="assign.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="visionFunction.h" />
+    <ClInclude Include="visionFunctions.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

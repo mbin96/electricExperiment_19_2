@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="visionFunction.h">
+    <ClInclude Include="visionFunctions.hpp">
       <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
