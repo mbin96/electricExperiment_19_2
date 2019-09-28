@@ -9,13 +9,13 @@
 
 
 int main() {
-	//open img
+    //open img
     int height, width;
 
     //calc vision weight of ref Img.
-	Mat refImg = imread("ref.bmp", cv::IMREAD_COLOR);
-	height = refImg.rows;
-	width = refImg.cols;
+    Mat refImg = imread("ref.bmp", cv::IMREAD_COLOR);
+    height = refImg.rows;
+    width = refImg.cols;
     pixel * visionWeightRef = setVision(refImg);
 
     //calc vision weight of compare Img.
@@ -25,7 +25,7 @@ int main() {
     pixel * visionWeightComp = setVision(compImg);
 
     findSameEdge(refImg, compImg, visionWeightRef, visionWeightComp);
-	waitKey(5000);
+    waitKey(5000);
 }
 
 
