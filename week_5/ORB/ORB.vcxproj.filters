@@ -15,12 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="assign.cpp">
+    <ClCompile Include="utils.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="visionFunctions.hpp">
+    <ClInclude Include="utils.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
