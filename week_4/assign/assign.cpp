@@ -27,6 +27,3 @@ int main() {
     findSameEdge(refImg, compImg, visionWeightRef, visionWeightComp);
     waitKey(5000);
 }
-
-
-
