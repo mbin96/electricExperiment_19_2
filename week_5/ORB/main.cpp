@@ -3,7 +3,10 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-#include "utils.h"
+#include "./utils.cpp"
+#include <iostream>
+#include <stdlib.h>
+
 
 using namespace cv;
 using namespace std;
@@ -19,7 +22,7 @@ int ORB_PATCH_SIZE = 31;
 float MIN_H_ERROR = 2.50f; // Maximum error in pixels to accept an inlier
 float DRATIO = 0.80f;
 
-void main() {
+int main() {
 
     
     
@@ -27,8 +30,8 @@ void main() {
     VideoCapture capture(0);
     Mat frame;
     if (!capture.isOpened()) {
-        printf("���m");
-        return;
+        printf("out!");
+        return 0;
     }
 
     Mat frameRef, frameTar;

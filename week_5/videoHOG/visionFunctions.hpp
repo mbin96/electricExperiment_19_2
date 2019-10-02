@@ -250,8 +250,8 @@ void calcGredient(Mat * inputImg, pixel* output) {
             output[i * width + j].magnitude = sqrt(pow(output[i * width + j].W, 2) + pow(output[i * width + j].H, 2));
 
             //set max, min for normalize
-            max = __max(output[i * width + j].magnitude, max);
-            min = __min(output[i * width + j].magnitude, min);
+            max = fmax(output[i * width + j].magnitude, max);
+            min = fmin(output[i * width + j].magnitude, min);
         }
     }
 
@@ -393,7 +393,7 @@ void harris(pixel* output, int height, int width) {
             //raw data
             output[i * width + j].edge = det - tr;
 
-            max = __max(max, (det - tr));
+            max = fmax(max, (det - tr));
             //reset
             MatA = MatB = MatC = MatD = 0;
         }

@@ -1,0 +1,1 @@
+sudo  docker run -it --rm   --env DISPLAY=$DISPLAY --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"  --device="/dev/video0:/dev/video0" --volume=$(pwd):$(pwd) --workdir=$(pwd) adnrv/opencv bash -c "./dockerMake.sh $1"

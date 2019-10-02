@@ -1,0 +1,1 @@
+g++ -ggdb main.cpp -o hog `pkg-config --cflags --libs opencv` && ./hog
