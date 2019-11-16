@@ -147,19 +147,17 @@ int main()
 	modelt.EstimateHeadPose(current_shape, eav);
 	modelt.drawPose(refImg, current_shape, 50);
 	int numLandmarks = current_shape.cols / 2;
-	 
-#define LBP_DIMENSION (numLandmarks-16)
-
+	
 	Mat reflbp = Mat::zeros(LBP_INPUT_SIZE * LBP_DIMENSION, LBP_INPUT_SIZE, CV_8UC3);
 	Mat tarlbp = Mat::zeros(LBP_INPUT_SIZE * LBP_DIMENSION, LBP_INPUT_SIZE, CV_8UC3);
-
+	Mat tile;
 	for (int j = 16; j < numLandmarks; j++) {
 		int x = current_shape.at<float>(j);
 		int y = current_shape.at<float>(j + numLandmarks);
 		std::stringstream ss;
 		ss << j;
 		
-		Mat tile = lbpImg(lbpCut(refImg, x, y));
+		tile = lbpImg(lbpCut(refImg, x, y));
 
 		for (int h = 0; h < LBP_INPUT_SIZE; h++) {
 			for (int w = 0; w < LBP_INPUT_SIZE; w++) {
@@ -205,7 +203,7 @@ int main()
 			cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
 		}
 		
-		if (lbpComp(reflbp, tarlbp, LBP_DIMENSION) == 1) {
+		if (lbpComp(reflbp, tarlbp, numLandmarks - 16) == 1) {
 			cv::putText(Image, "³Ê´Ù", cv::Point(10,10), 1, 2, cv::Scalar(0, 0, 255));
 		}
 
