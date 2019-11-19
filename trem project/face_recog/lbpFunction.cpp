@@ -114,10 +114,8 @@ cv::Mat lbpDimen(cv::Mat origImg[LBP_DIMEN_SIZE]) {
             }
         }
 
-
-
-        outImg = origImg[i];
     }
+    return outImg;
 }
 
 

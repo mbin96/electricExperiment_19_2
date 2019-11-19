@@ -7,9 +7,11 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
-
+#include <opencv2/ml/ml.hpp>
 #include "ldmarkmodel.h"
+
 #include "lbpFunction.hpp"
+#include "main.hpp"
 
 using namespace std;
 using namespace cv;
@@ -19,10 +21,11 @@ int learning() {
 
     std::ofstream out("LBP.txt");
 
-
+    //TODO - input from map
     Mat origImg = imread("photo.jpg", cv::IMREAD_COLOR);
-
-
+    vector<Rect> faces = doCascacade(origImg);
+    Mat * testimgarray=getFaceImg(origImg, FACE_IMG_SIZE, faces);
+    origImg =testimgarray[0];
     ldmarkmodel modelt;
     std::string modelFilePath = "roboman-landmark-model.bin";
     while (!load_ldmarkmodel(modelFilePath, modelt)) {
@@ -92,6 +95,42 @@ int learning() {
     return 0;
 }
 
+
+//do cascacade and return vector fo face square
+vector<Rect> doCascacade(Mat input) {
+    CascadeClassifier cascadeFace;
+    cascadeFace.load("haarcascade_frontalface_alt.xml");
+    vector<Rect> faces;
+    cascadeFace.detectMultiScale(input, faces, 1.1, 4, 0 | 2, Size(10, 10));
+    return faces;
+}
+
+
+//getFaceImg
+//return imgSize*imgSize of Mat array
+//must use delete[] array of unallocation
+Mat * getFaceImg(Mat input, int imgSize, vector<Rect> faces) {
+    
+    Mat * faceDetected = new Mat[faces.size()];
+
+    for (int y = 0; y < faces.size(); y++) {
+        Rect faceRect(faces[y].x, faces[y].y, faces[y].x + faces[y].width, faces[y].y + faces[y].height);
+        //Mat faceDetected[y] = input(rect) //is it possible?
+        faceDetected[y] = Mat::zeros(faces[y].height, faces[y].width, CV_8UC3);
+        
+        //crop to faceDetected[y] from input
+        for (int h = faces[y].y; h < faces[y].y + faces[y].height; h++) {
+            for (int w = faces[y].x; w < faces[y].x + faces[y].width; w++) {
+                faceDetected[y].at<Vec3b>(h - faces[y].y, w - faces[y].x)[0] = (input.at<Vec3b>(h, w)[0]);//B
+                faceDetected[y].at<Vec3b>(h - faces[y].y, w - faces[y].x)[1] = (input.at<Vec3b>(h, w)[1]);//G
+                faceDetected[y].at<Vec3b>(h - faces[y].y, w - faces[y].x)[2] = (input.at<Vec3b>(h, w)[2]);//R
+            }
+        }
+
+        resize(faceDetected[y], faceDetected[y], Size(imgSize, imgSize));
+    }
+    return faceDetected;
+}
 
 int main()
 {

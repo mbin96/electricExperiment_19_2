@@ -26,5 +26,8 @@
     <ClInclude Include="lbpFunction.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="main.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
