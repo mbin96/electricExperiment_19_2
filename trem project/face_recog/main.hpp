@@ -11,7 +11,7 @@
 #include "ldmarkmodel.h"
 
 
-#define FACE_IMG_SIZE 128
+#define FACE_IMG_SIZE 192
 
 std::vector<cv::Rect> doCascacade(cv::Mat input);
 cv::Mat* getFaceImg(cv::Mat input, int imgSize, std::vector<cv::Rect> faces);

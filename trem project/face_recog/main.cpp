@@ -9,7 +9,6 @@
 #include "opencv2/objdetect/objdetect.hpp"
 #include <opencv2/ml/ml.hpp>
 #include "ldmarkmodel.h"
-
 #include "lbpFunction.hpp"
 #include "main.hpp"
 
@@ -25,7 +24,11 @@ int learning() {
     Mat origImg = imread("photo.jpg", cv::IMREAD_COLOR);
     vector<Rect> faces = doCascacade(origImg);
     Mat * testimgarray=getFaceImg(origImg, FACE_IMG_SIZE, faces);
-    origImg =testimgarray[0];
+    origImg = testimgarray[0];
+
+    //imshow("debug", origImg);
+    //waitKey(5000);
+    
     ldmarkmodel modelt;
     std::string modelFilePath = "roboman-landmark-model.bin";
     while (!load_ldmarkmodel(modelFilePath, modelt)) {
@@ -47,19 +50,20 @@ int learning() {
 
     modelt.track(Image, current_shape);
     cv::Vec3d eav;
-    modelt.EstimateHeadPose(current_shape, eav);
-    modelt.drawPose(Image, current_shape, 50);
-
+    //modelt.EstimateHeadPose(current_shape, eav);
+    //modelt.drawPose(Image, current_shape, 50);
+    
     int numLandmarks = current_shape.cols / 2;
 
-    for (int j = 0; j < 16; j++) {
-        int x = current_shape.at<float>(j);
-        int y = current_shape.at<float>(j + numLandmarks);
-        std::stringstream ss;
-        ss << j;
-        //            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
-        cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
-    }
+    //ÅÎ ±×¸®±â
+    //for (int j = 0; j < 16; j++) {
+    //    int x = current_shape.at<float>(j);
+    //    int y = current_shape.at<float>(j + numLandmarks);
+    //    std::stringstream ss;
+    //    ss << j;
+    //    //            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
+    //    cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
+    //}
 
     for (int j = 16; j < numLandmarks; j++) {
         int x = current_shape.at<float>(j);
@@ -67,7 +71,6 @@ int learning() {
         std::stringstream ss;
         ss << j;
         cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
-
 
         Mat outImg = cv::Mat::zeros(LBP_INPUT_SIZE, LBP_INPUT_SIZE, CV_8UC1);
 
@@ -80,16 +83,12 @@ int learning() {
                 out << (uint)outImg.at<uchar>(h, w) << endl;
             }
         }
-
-
-
         //            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
         cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
     }
 
     cv::imshow("Camera", Image);
     waitKey(5000);
-
 
     system("pause");
     return 0;
@@ -114,16 +113,22 @@ Mat * getFaceImg(Mat input, int imgSize, vector<Rect> faces) {
     Mat * faceDetected = new Mat[faces.size()];
 
     for (int y = 0; y < faces.size(); y++) {
-        Rect faceRect(faces[y].x, faces[y].y, faces[y].x + faces[y].width, faces[y].y + faces[y].height);
+        int X, Y, H, W;
+        X = faces[y].x - 30;
+        Y = faces[y].y - 30;
+        H = faces[y].y + faces[y].height + 30;
+        W = faces[y].x + faces[y].width + 30;
+        
         //Mat faceDetected[y] = input(rect) //is it possible?
-        faceDetected[y] = Mat::zeros(faces[y].height, faces[y].width, CV_8UC3);
+        faceDetected[y] = Mat::zeros(H - Y, W - X, CV_8UC3);
         
         //crop to faceDetected[y] from input
-        for (int h = faces[y].y; h < faces[y].y + faces[y].height; h++) {
-            for (int w = faces[y].x; w < faces[y].x + faces[y].width; w++) {
-                faceDetected[y].at<Vec3b>(h - faces[y].y, w - faces[y].x)[0] = (input.at<Vec3b>(h, w)[0]);//B
-                faceDetected[y].at<Vec3b>(h - faces[y].y, w - faces[y].x)[1] = (input.at<Vec3b>(h, w)[1]);//G
-                faceDetected[y].at<Vec3b>(h - faces[y].y, w - faces[y].x)[2] = (input.at<Vec3b>(h, w)[2]);//R
+        
+        for (int h = Y; h < H; h++) {
+            for (int w = X; w < W; w++) {
+                faceDetected[y].at<Vec3b>(h - Y, w - X)[0] = (input.at<Vec3b>(h, w)[0]);//B
+                faceDetected[y].at<Vec3b>(h - Y, w - X)[1] = (input.at<Vec3b>(h, w)[1]);//G
+                faceDetected[y].at<Vec3b>(h - Y, w - X)[2] = (input.at<Vec3b>(h, w)[2]);//R
             }
         }
 
