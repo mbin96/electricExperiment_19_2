@@ -3,6 +3,7 @@
 #include <fstream>
 #include <math.h>
 #include <fstream>
+#include <Windows.h>
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -15,19 +16,49 @@
 using namespace std;
 using namespace cv;
 
+Mat alphaBlend(Mat background, Mat alphaImg, Point location) {
+    
+    
+    int alphaHeight = alphaImg.rows;
+    int alphaWidth  = alphaImg.cols;
+    int bgHeight = background.rows;
+    int bgWidth = background.cols;
+    int blendCenterW = location.x;
+    int blendCenterH = location.y;
+    float alphaV;
+    int bgH, bgW;
+    for (int alphaH = 0; alphaH < alphaHeight; alphaH++) {
+        for (int alphaW = 0; alphaW < alphaWidth; alphaW++) {
+
+            
+            bgH = blendCenterH + alphaH - alphaHeight/2;
+            bgW = blendCenterW + alphaW - alphaWidth / 2;
+            if (bgH > 0 && bgW > 0 && bgH < bgHeight && bgW < bgWidth) {
+                
+                //alpha velue
+                alphaV = alphaImg.at<Vec4b>(alphaH, alphaW)[3] / 255;
+                //blend pixel
+                background.at<Vec3b>(bgH, bgW)[0] = alphaV * alphaImg.at<Vec4b>(alphaH, alphaW)[0] + (1 - alphaV) * background.at<Vec3b>(bgH, bgW)[0];
+                background.at<Vec3b>(bgH, bgW)[1] = alphaV * alphaImg.at<Vec4b>(alphaH, alphaW)[1] + (1 - alphaV) * background.at<Vec3b>(bgH, bgW)[1];
+                background.at<Vec3b>(bgH, bgW)[2] = alphaV * alphaImg.at<Vec4b>(alphaH, alphaW)[2] + (1 - alphaV) * background.at<Vec3b>(bgH, bgW)[2];
+
+            }
+            //imshow("1", background);
+            //waitKey(1);
+
+        }
+    }
+    
+    return background;
+    
+}
 
 int learning() {
-
-    std::ofstream out("LBP.txt");
-
-    //TODO - input from map
-    Mat origImg = imread("photo.jpg", cv::IMREAD_COLOR);
-    vector<Rect> faces = doCascacade(origImg);
-    Mat * testimgarray=getFaceImg(origImg, FACE_IMG_SIZE, faces);
-    origImg = testimgarray[0];
-
-    //imshow("debug", origImg);
-    //waitKey(5000);
+    CascadeClassifier cascadeFace;
+    cascadeFace.load("haarcascade_frontalface_alt.xml");
+    //std::ofstream out("LBP.txt");
+    
+    
     
     ldmarkmodel modelt;
     std::string modelFilePath = "roboman-landmark-model.bin";
@@ -35,74 +66,87 @@ int learning() {
         std::cout << "zzzz." << std::endl;
         std::cin >> modelFilePath;
     }
-    /*
-    cv::VideoCapture mCamera(0);
+    
+    
+    cv::VideoCapture mCamera("movie3.mp4");
+    
     if (!mCamera.isOpened()) {
         std::cout << "Camera opening failed..." << std::endl;
         system("pause");
         return 0;
     }
-    */
-    cv::Mat Image;
-    cv::Mat current_shape;
-
-    origImg.copyTo(Image);
-
-    modelt.track(Image, current_shape);
-    cv::Vec3d eav;
-    //modelt.EstimateHeadPose(current_shape, eav);
-    //modelt.drawPose(Image, current_shape, 50);
     
-    int numLandmarks = current_shape.cols / 2;
+    Mat kemonoEar = imread("cat_ear.png", cv::IMREAD_UNCHANGED);
 
-    //ÅÎ ±×¸®±â
-    //for (int j = 0; j < 16; j++) {
-    //    int x = current_shape.at<float>(j);
-    //    int y = current_shape.at<float>(j + numLandmarks);
-    //    std::stringstream ss;
-    //    ss << j;
-    //    //            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
-    //    cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
-    //}
 
-    for (int j = 16; j < numLandmarks; j++) {
-        int x = current_shape.at<float>(j);
-        int y = current_shape.at<float>(j + numLandmarks);
-        std::stringstream ss;
-        ss << j;
-        cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
+    Mat origImg;
+    vector<Rect> faces;
+    while (1) {
+        mCamera >> origImg;
+        resize(origImg, origImg, Size(640, 360));
 
-        Mat outImg = cv::Mat::zeros(LBP_INPUT_SIZE, LBP_INPUT_SIZE, CV_8UC1);
 
-        lbpImg(lbpCut(Image, x, y)).copyTo(outImg);
+        //TODO - input from map
+        //Mat origImg = imread("photo.jpg", cv::IMREAD_COLOR);
+        
+        
+            //imshow("debug", origImg);
+            //waitKey(5000);
 
-        cv::imshow("lbp" + std::to_string(j), lbpImg(lbpCut(Image, x, y)));
 
-        for (int h = 0; h < LBP_INPUT_SIZE; h++) {
-            for (int w = 0; w < LBP_INPUT_SIZE; w++) {
-                out << (uint)outImg.at<uchar>(h, w) << endl;
+            /*
+            cv::VideoCapture mCamera(0);
+            if (!mCamera.isOpened()) {
+                std::cout << "Camera opening failed..." << std::endl;
+                system("pause");
+                return 0;
             }
-        }
-        //            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
-        cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
-    }
+            */
+            cv::Mat Image;
+            cv::Mat current_shape;
 
-    cv::imshow("Camera", Image);
-    waitKey(5000);
+            origImg.copyTo(Image);
+            //Image = kemonoEar + Image;
+            alphaBlend(Image, kemonoEar, Point(300, 300));
+
+            modelt.track(Image, current_shape);
+            cv::Vec3d eav;
+            modelt.EstimateHeadPose(current_shape, eav);
+            modelt.drawPose(Image, current_shape, 50);
+
+            int numLandmarks = current_shape.cols / 2;
+
+            //ÅÎ ±×¸®±â
+            
+
+            for (int j = 0; j < numLandmarks; j++) {
+                int x = current_shape.at<float>(j);
+                int y = current_shape.at<float>(j + numLandmarks);
+                std::stringstream ss;
+                ss << j;
+                cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
+
+                //Mat outImg = cv::Mat::zeros(LBP_INPUT_SIZE, LBP_INPUT_SIZE, CV_8UC1);
+
+                //lbpImg(lbpCut(Image, x, y)).copyTo(outImg);
+
+                //cv::imshow("lbp" + std::to_string(j), lbpImg(lbpCut(Image, x, y)));
+
+                
+                //            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
+                cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
+            }
+
+            cv::imshow("Camera", Image);
+        
+        waitKey(20);
+    }
 
     system("pause");
     return 0;
 }
 
 
-//do cascacade and return vector fo face square
-vector<Rect> doCascacade(Mat input) {
-    CascadeClassifier cascadeFace;
-    cascadeFace.load("haarcascade_frontalface_alt.xml");
-    vector<Rect> faces;
-    cascadeFace.detectMultiScale(input, faces, 1.1, 4, 0 | 2, Size(10, 10));
-    return faces;
-}
 
 
 //getFaceImg
@@ -126,9 +170,11 @@ Mat * getFaceImg(Mat input, int imgSize, vector<Rect> faces) {
         
         for (int h = Y; h < H; h++) {
             for (int w = X; w < W; w++) {
-                faceDetected[y].at<Vec3b>(h - Y, w - X)[0] = (input.at<Vec3b>(h, w)[0]);//B
-                faceDetected[y].at<Vec3b>(h - Y, w - X)[1] = (input.at<Vec3b>(h, w)[1]);//G
-                faceDetected[y].at<Vec3b>(h - Y, w - X)[2] = (input.at<Vec3b>(h, w)[2]);//R
+                if (h > 0 && w > 0 && h < input.rows && w < input.cols) {
+                    faceDetected[y].at<Vec3b>(h - Y, w - X)[0] = (input.at<Vec3b>(h, w)[0]);//B
+                    faceDetected[y].at<Vec3b>(h - Y, w - X)[1] = (input.at<Vec3b>(h, w)[1]);//G
+                    faceDetected[y].at<Vec3b>(h - Y, w - X)[2] = (input.at<Vec3b>(h, w)[2]);//R
+                }
             }
         }
 
@@ -139,6 +185,12 @@ Mat * getFaceImg(Mat input, int imgSize, vector<Rect> faces) {
 
 int main()
 {
+    POINT p;
+    GetCursorPos(&p);
+    double mouseX = p.x;
+    double mouseY = p.y;
+    SetCursorPos(0, 0);
+
     int sel;
     cout << "mode sel >";
     cin >> sel;

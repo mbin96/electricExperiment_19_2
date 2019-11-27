@@ -27,27 +27,28 @@ int main(int argc, char** argv)
         Mat mask = Mat::zeros(img.rows, img.cols, CV_8UC1);
         Mat contImg;
 
+        Mat mask1 = Mat::zeros(img.rows, img.cols, CV_8UC1);
         vector<vector<Point> > contours;
         vector<Vec4i> hierarchy;
-        blur(img_gray, img_gray, Size(3, 3));
+        GaussianBlur(img_gray, img_gray, Size(5, 5),5);
         Canny(img_gray, contImg, 100, 100 * 3, 3);
-        //imshow("contImg", contImg);
         findContours(contImg, contours, hierarchy, 3, 2, Point(0, 0));
         for (int i = 0; i < contours.size(); i++)
         {
             //Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-            drawContours(img_gray, contours, i, 255, 1, 8, hierarchy, 0, Point());
+            drawContours(mask1, contours, i, 255, 1, 8, hierarchy, 0, Point());
         }
 
-        for (int h = 0; h < img_gray.rows; h += 3) {
-            for (int w = 0; w < img_gray.cols; w += 3) {
+        imshow("contImg", mask1);
+        for (int h = 0; h < mask1.rows; h += 3) {
+            for (int w = 0; w < mask1.cols; w += 3) {
                 int count = 0;
                 for (int hh = 0; hh < BOUND; hh++) {
                     for (int ww = 0; ww < BOUND; ww++) {
                         int height = h + hh - (BOUND / 2);
                         int width = w + ww - (BOUND / 2);
-                        if ((height < img_gray.rows) && (width < img_gray.cols) && (height > 0) && (width > 0))
-                           if(img_gray.at<uchar>(height, width) == 255)
+                        if ((height < mask1.rows) && (width < mask1.cols) && (height > 0) && (width > 0))
+                           if(mask1.at<uchar>(height, width) == 255)
                             count ++;
                     }
                 }
