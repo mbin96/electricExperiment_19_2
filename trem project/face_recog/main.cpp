@@ -26,12 +26,13 @@ Mat alphaBlend(Mat background, Mat alphaImg, Point location) {
     int blendCenterW = location.x;
     int blendCenterH = location.y;
     float alphaV;
+
     int bgH, bgW;
     for (int alphaH = 0; alphaH < alphaHeight; alphaH++) {
         for (int alphaW = 0; alphaW < alphaWidth; alphaW++) {
 
-            
-            bgH = blendCenterH + alphaH - alphaHeight/2;
+            //calc blend location of BG IMG
+            bgH = blendCenterH + alphaH - alphaHeight / 2;
             bgW = blendCenterW + alphaW - alphaWidth / 2;
             if (bgH > 0 && bgW > 0 && bgH < bgHeight && bgW < bgWidth) {
                 
@@ -54,8 +55,8 @@ Mat alphaBlend(Mat background, Mat alphaImg, Point location) {
 }
 
 int learning() {
-    CascadeClassifier cascadeFace;
-    cascadeFace.load("haarcascade_frontalface_alt.xml");
+    //CascadeClassifier cascadeFace;
+    //cascadeFace.load("haarcascade_frontalface_alt.xml");
     //std::ofstream out("LBP.txt");
     
     
@@ -68,8 +69,9 @@ int learning() {
     }
     
     
-    cv::VideoCapture mCamera("movie3.mp4");
-    
+    cv::VideoCapture mCamera("face.mp4");
+    //cv::VideoCapture mCamera(0);
+           
     if (!mCamera.isOpened()) {
         std::cout << "Camera opening failed..." << std::endl;
         system("pause");
@@ -77,67 +79,69 @@ int learning() {
     }
     
     Mat kemonoEar = imread("cat_ear.png", cv::IMREAD_UNCHANGED);
-
-
+    cv::Mat blendItem;
+    cv::Mat Image;
+    cv::Mat current_shape;
+    //아이템의 얼굴 너비가 얼마인지 알아야 정확한 얼굴길이와 매칭이 가능
+    int itemFaceWidth=160;
+    Point faceBottom, faceCenter, faceTop, faceLeft, faceRight;
+    float faceWidth, faceHeight;
     Mat origImg;
     vector<Rect> faces;
     while (1) {
         mCamera >> origImg;
         resize(origImg, origImg, Size(640, 360));
 
-
         //TODO - input from map
         //Mat origImg = imread("photo.jpg", cv::IMREAD_COLOR);
         
+        //imshow("debug", origImg);
+        //waitKey(5000);
+           
         
-            //imshow("debug", origImg);
-            //waitKey(5000);
 
+        origImg.copyTo(Image);
+        kemonoEar.copyTo(blendItem);
+        //Image = kemonoEar + Image;
+        //alphaBlend(Image, kemonoEar, Point(300, 300));
 
-            /*
-            cv::VideoCapture mCamera(0);
-            if (!mCamera.isOpened()) {
-                std::cout << "Camera opening failed..." << std::endl;
-                system("pause");
-                return 0;
-            }
-            */
-            cv::Mat Image;
-            cv::Mat current_shape;
+        modelt.track(Image, current_shape);
+        cv::Vec3d eav;
+        modelt.EstimateHeadPose(current_shape, eav);
+        modelt.drawPose(Image, current_shape, 50);
 
-            origImg.copyTo(Image);
-            //Image = kemonoEar + Image;
-            alphaBlend(Image, kemonoEar, Point(300, 300));
+        int numLandmarks = current_shape.cols / 2;
+        if (numLandmarks > 0) {
+            faceBottom = Point(current_shape.at<float>(8),current_shape.at<float>(8 + numLandmarks));
+            faceCenter.x = current_shape.at<float>(30);
+            faceCenter.y = current_shape.at<float>(30 + numLandmarks);
+            faceLeft = Point(current_shape.at<float>(1), current_shape.at<float>(1 + numLandmarks));
+            faceRight = Point(current_shape.at<float>(15), current_shape.at<float>(15 + numLandmarks));
+            faceTop.x = 2 * faceCenter.x - faceBottom.x;
+            faceTop.y = 2 * faceCenter.y - faceBottom.y;
+            faceWidth = sqrt(pow(faceRight.x - faceLeft.x,2) + pow(faceRight.y - faceLeft.y,2));
+            resize(blendItem, blendItem, Size(blendItem.rows *(faceWidth/ itemFaceWidth), blendItem.rows * (faceWidth / itemFaceWidth)));
+            alphaBlend(Image, blendItem, Point(faceTop.x, faceTop.y));
+        }
+        for (int j = 0; j < numLandmarks; j++) {
+            int x = current_shape.at<float>(j);
+            int y = current_shape.at<float>(j + numLandmarks);
+            std::stringstream ss;
+            ss << j;
+            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
 
-            modelt.track(Image, current_shape);
-            cv::Vec3d eav;
-            modelt.EstimateHeadPose(current_shape, eav);
-            modelt.drawPose(Image, current_shape, 50);
+            //Mat outImg = cv::Mat::zeros(LBP_INPUT_SIZE, LBP_INPUT_SIZE, CV_8UC1);
 
-            int numLandmarks = current_shape.cols / 2;
+            //lbpImg(lbpCut(Image, x, y)).copyTo(outImg);
 
-            //턱 그리기
-            
-
-            for (int j = 0; j < numLandmarks; j++) {
-                int x = current_shape.at<float>(j);
-                int y = current_shape.at<float>(j + numLandmarks);
-                std::stringstream ss;
-                ss << j;
-                cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
-
-                //Mat outImg = cv::Mat::zeros(LBP_INPUT_SIZE, LBP_INPUT_SIZE, CV_8UC1);
-
-                //lbpImg(lbpCut(Image, x, y)).copyTo(outImg);
-
-                //cv::imshow("lbp" + std::to_string(j), lbpImg(lbpCut(Image, x, y)));
+            //cv::imshow("lbp" + std::to_string(j), lbpImg(lbpCut(Image, x, y)));
 
                 
-                //            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
-                cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
-            }
+            //            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
+            cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
+        }
 
-            cv::imshow("Camera", Image);
+        cv::imshow("Camera", Image);
         
         waitKey(20);
     }
@@ -185,18 +189,18 @@ Mat * getFaceImg(Mat input, int imgSize, vector<Rect> faces) {
 
 int main()
 {
-    POINT p;
-    GetCursorPos(&p);
-    double mouseX = p.x;
-    double mouseY = p.y;
-    SetCursorPos(0, 0);
+    //POINT p;
+    //GetCursorPos(&p);
+   // double mouseX = p.x;
+    //double mouseY = p.y;
+   // SetCursorPos(0, 0);
 
     int sel;
-    cout << "mode sel >";
-    cin >> sel;
+    //cout << "mode sel >";
+    //cin >> sel;
 
-    if (sel == 0) {
+    //if (sel == 0) {
         learning();
-    }
+    //}
     return 0;
 }
