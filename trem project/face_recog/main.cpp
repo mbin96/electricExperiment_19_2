@@ -13,46 +13,12 @@
 #include "lbpFunction.hpp"
 #include "main.hpp"
 
+
+#include "blendItem.h"
+
 using namespace std;
 using namespace cv;
 
-Mat alphaBlend(Mat background, Mat alphaImg, Point location) {
-    
-    
-    int alphaHeight = alphaImg.rows;
-    int alphaWidth  = alphaImg.cols;
-    int bgHeight = background.rows;
-    int bgWidth = background.cols;
-    int blendCenterW = location.x;
-    int blendCenterH = location.y;
-    float alphaV;
-
-    int bgH, bgW;
-    for (int alphaH = 0; alphaH < alphaHeight; alphaH++) {
-        for (int alphaW = 0; alphaW < alphaWidth; alphaW++) {
-
-            //calc blend location of BG IMG
-            bgH = blendCenterH + alphaH - alphaHeight / 2;
-            bgW = blendCenterW + alphaW - alphaWidth / 2;
-            if (bgH > 0 && bgW > 0 && bgH < bgHeight && bgW < bgWidth) {
-                
-                //alpha velue
-                alphaV = alphaImg.at<Vec4b>(alphaH, alphaW)[3] / 255;
-                //blend pixel
-                background.at<Vec3b>(bgH, bgW)[0] = alphaV * alphaImg.at<Vec4b>(alphaH, alphaW)[0] + (1 - alphaV) * background.at<Vec3b>(bgH, bgW)[0];
-                background.at<Vec3b>(bgH, bgW)[1] = alphaV * alphaImg.at<Vec4b>(alphaH, alphaW)[1] + (1 - alphaV) * background.at<Vec3b>(bgH, bgW)[1];
-                background.at<Vec3b>(bgH, bgW)[2] = alphaV * alphaImg.at<Vec4b>(alphaH, alphaW)[2] + (1 - alphaV) * background.at<Vec3b>(bgH, bgW)[2];
-
-            }
-            //imshow("1", background);
-            //waitKey(1);
-
-        }
-    }
-    
-    return background;
-    
-}
 
 int learning() {
     //CascadeClassifier cascadeFace;
@@ -69,8 +35,8 @@ int learning() {
     }
     
     
-    cv::VideoCapture mCamera("face.mp4");
-    //cv::VideoCapture mCamera(0);
+    //cv::VideoCapture mCamera("face.mp4");
+    cv::VideoCapture mCamera(0);
            
     if (!mCamera.isOpened()) {
         std::cout << "Camera opening failed..." << std::endl;
@@ -88,6 +54,10 @@ int learning() {
     float faceWidth, faceHeight;
     Mat origImg;
     vector<Rect> faces;
+    
+    
+    
+    BlendItem blend;
     while (1) {
         mCamera >> origImg;
         resize(origImg, origImg, Size(640, 360));
@@ -121,7 +91,9 @@ int learning() {
             faceTop.y = 2 * faceCenter.y - faceBottom.y;
             faceWidth = sqrt(pow(faceRight.x - faceLeft.x,2) + pow(faceRight.y - faceLeft.y,2));
             resize(blendItem, blendItem, Size(blendItem.rows *(faceWidth/ itemFaceWidth), blendItem.rows * (faceWidth / itemFaceWidth)));
-            alphaBlend(Image, blendItem, Point(faceTop.x, faceTop.y));
+
+            blend.setInput(Image, blendItem, Point(faceTop.x, faceTop.y));
+            blend.getBlended(Image);
         }
         for (int j = 0; j < numLandmarks; j++) {
             int x = current_shape.at<float>(j);

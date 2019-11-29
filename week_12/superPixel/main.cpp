@@ -14,17 +14,17 @@ Mat getSlic(Mat img, int m_spcount = 200, double m_compactness = 20) {
     uint* imgARGB = (uint*)calloc(img.cols * img.rows, sizeof(int));
 
     //Mat(BGR) to ARGB
-    for (int h = 0; h < img.cols; h++) {
-        for (int w = 0; w < img.rows; w++) {
-            imgARGB[h * img.rows + w] = (0xff << 24) +
+    for (int h = 0; h < img.rows; h++) {
+        for (int w = 0; w < img.cols; w++) {
+            imgARGB[h * img.cols + w] = (0xff << 24) +
                 (((uint)img.at<cv::Vec3b>(h, w)[2]) << 16) +
                 (((uint)img.at<cv::Vec3b>(h, w)[1]) << 8) +
                 ((uint)img.at<cv::Vec3b>(h, w)[0]);
         }
     }
 
-    int width = img.rows;
-    int height = img.cols;
+    int width = img.cols;
+    int height = img.rows;
 
     int sz = width * height;
     //if (m_spcount > sz);
@@ -41,11 +41,11 @@ Mat getSlic(Mat img, int m_spcount = 200, double m_compactness = 20) {
 
     //picHand.SavePicture(img, width, height, picvec[k], saveLocation, 1, "_SLICO");// 0 is for BMP and 1 for JPEG)
 
-    for (int h = 0; h < img.cols; h++) {
-        for (int w = 0; w < img.rows; w++) {
-            img.at<cv::Vec3b>(h, w)[2] = 0xff & (imgARGB[h * img.rows + w] >> 16);
-            img.at<cv::Vec3b>(h, w)[1] = 0xff & (imgARGB[h * img.rows + w] >> 8);
-            img.at<cv::Vec3b>(h, w)[0] = 0xff & (imgARGB[h * img.rows + w] >> 0);
+    for (int h = 0; h < img.rows; h++) {
+        for (int w = 0; w < img.cols; w++) {
+            img.at<cv::Vec3b>(h, w)[2] = 0xff & (imgARGB[h * img.cols + w] >> 16);
+            img.at<cv::Vec3b>(h, w)[1] = 0xff & (imgARGB[h * img.cols + w] >> 8);
+            img.at<cv::Vec3b>(h, w)[0] = 0xff & (imgARGB[h * img.cols + w] >> 0);
         }
     }
 
@@ -56,7 +56,7 @@ Mat getSlic(Mat img, int m_spcount = 200, double m_compactness = 20) {
 int main()
 {
     int m_spcount = 200;//super pixel size
-    double m_compactness = 20;
+    double m_compactness = 100;
     
 
 
@@ -76,6 +76,8 @@ int main()
     vector<Rect> faces;
     while (true) {
         capture >> frameRef;
+        
+        /*
         cascadeFace.detectMultiScale(frameRef, faces, 1.1, 4, 0 | 2, Size(10, 10));
         Mat faceDetected;
         std::cout << faces.size() << std::endl;
@@ -106,7 +108,10 @@ int main()
             }
             rectangle(frameRef, lb, tr, Scalar(0, 0, 255), 3, 8, 0);
         }
-
+        */
+        Mat hell = frameRef;
+        Mat frameRef = getSlic(hell, m_spcount, m_compactness);
+        
         imshow("img", frameRef);
 
         if (waitKey(30) >= 0) {

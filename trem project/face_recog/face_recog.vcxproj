@@ -127,10 +127,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="blendItem.cpp" />
     <ClCompile Include="lbpFunction.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="blendItem.h" />
     <ClInclude Include="lbpFunction.hpp" />
     <ClInclude Include="main.hpp" />
   </ItemGroup>
