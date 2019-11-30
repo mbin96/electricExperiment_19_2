@@ -60,14 +60,14 @@ int learning() {
     BlendItem blend;
     while (1) {
         mCamera >> origImg;
-        resize(origImg, origImg, Size(1280, 720));
+        //resize(origImg, origImg, Size(1280, 720));
 
         //TODO - input from map
         //Mat origImg = imread("photo.jpg", cv::IMREAD_COLOR);
         
         //imshow("debug", origImg);
         //waitKey(5000);
-           
+        
         
 
         origImg.copyTo(Image);
@@ -79,6 +79,9 @@ int learning() {
         cv::Vec3d eav;
         modelt.EstimateHeadPose(current_shape, eav);
         modelt.drawPose(Image, current_shape, 50);
+
+        
+
 
         //눈썹 사이 - 이미지 블랜드 되는 중심점 21 22 사이
         //눈썹 가장 먼 거리 - 이미지 에서 얼굴길이로 지정한 가로길이
@@ -97,13 +100,15 @@ int learning() {
             faceRight = Point(current_shape.at<float>(15), current_shape.at<float>(15 + numLandmarks));
             
             int faceHigh = sqrt(pow(faceEyeCenter.x - current_shape.at<float>(30), 2) + pow(faceEyeCenter.y - current_shape.at<float>(30 + numLandmarks), 2));
-
+            if (faceHigh < 25) {
+                current_shape = Mat::zeros(1, 1, CV_8UC1);
+            }
             // y 더해주는거 얼마나 더해줄지 생각해보기
-            faceTop = faceEyeCenter - Point(-faceCenter.x+faceBottom.x, faceHigh);
+            faceTop = faceEyeCenter - Point(0.7 * (faceBottom.x -faceCenter.x), faceHigh*cos(eav[2] * 3.14 / 180));
             //faceTop.x = 2 * faceCenter.x - faceBottom.x;
             faceWidth = sqrt(pow(facebrowLeft.x - facebrowRight.x,2) + pow(facebrowLeft.y - facebrowRight.y,2));
             //faceTop.y = faceCenter.y - faceWidth / ((faceBottom.y - current_shape.at<float>(30 + numLandmarks))/ (faceBottom.y - faceCenter.y));
-            resize(blendItem, blendItem, Size(blendItem.rows * (faceWidth / itemFaceWidth), blendItem.rows * (cos(eav[0]*3.14 / 180))));
+            resize(blendItem, blendItem, Size(blendItem.cols * (faceWidth / itemFaceWidth), blendItem.rows*(0.8*sqrt(pow(faceBottom.x - faceEyeCenter.x,2) + pow(faceBottom.y - faceEyeCenter.y, 2)))/itemFaceWidth));//(cos(eav[0]*3.14 / 180))));
             Mat rot = getRotationMatrix2D(Point(blendItem.rows / 2, blendItem.cols / 2), -eav[2], 1.0);
             
             warpAffine(blendItem, blendItem, rot,Size(blendItem.cols, blendItem.rows),1,BORDER_TRANSPARENT);
@@ -126,7 +131,7 @@ int learning() {
 
                 
             //            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
-            cv::circle(Image, cv::Point(x, y), 2, cv::Scalar(0, 0, 255), -1);
+            cv::circle(Image, cv::Point(x, y), 10, cv::Scalar(0, 0, 255), -1);
         }
 
         cv::imshow("Camera", Image);
