@@ -1,17 +1,17 @@
 #include "blendItem.h"
 
-void BlendItem::setInput(cv::Mat _bgImg, cv::Mat _alphaImg, cv::Point location) {
+void BlendItem::setBg(cv::Mat _bgImg) {
     backGround = _bgImg;
+    bgHeight = backGround.rows;
+    bgWidth = backGround.cols;
+}
+
+void BlendItem::blendItem(cv::Mat _alphaImg, cv::Point location) {
     alphaImg = _alphaImg;
     blendCenterW = location.x;
     blendCenterH = location.y;
     alphaHeight = alphaImg.rows;
     alphaWidth = alphaImg.cols;
-    bgHeight = backGround.rows;
-    bgWidth = backGround.cols;
-}
-
-void BlendItem::getBlended(cv::Mat output) {
     for (int alphaH = 0; alphaH < alphaHeight; alphaH++) {
         for (int alphaW = 0; alphaW < alphaWidth; alphaW++) {
 
@@ -33,5 +33,8 @@ void BlendItem::getBlended(cv::Mat output) {
 
         }
     }
+}
+
+void BlendItem::getBlended(cv::Mat &output) {
     output = backGround;
 }

@@ -18,7 +18,8 @@ private:
     int bgH, bgW;
 
 public:
-    void setInput(cv::Mat _bgImg, cv::Mat _alphaImg, cv::Point location);
-    void getBlended(cv::Mat output);
+    void setBg(cv::Mat _bgImg);
+    void blendItem(cv::Mat _alphaImg, cv::Point location);
+    void getBlended(cv::Mat &output);
 
 };

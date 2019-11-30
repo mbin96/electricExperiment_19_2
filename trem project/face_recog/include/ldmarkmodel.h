@@ -124,7 +124,6 @@ private:
         ar(LandmarkIndexs, eyes_index, meanShape, HoGParams, isNormal, LinearRegressors);
     }
 };
-
 //º”‘ÿƒ£–Õ
 bool load_ldmarkmodel(std::string filename, ldmarkmodel &model);
 
@@ -132,9 +131,7 @@ bool load_ldmarkmodel(std::string filename, ldmarkmodel &model);
 void save_ldmarkmodel(ldmarkmodel model, std::string filename);
 
 
-
 #include "ldmarkmodel.cpp"
-
 #endif
 
 

@@ -135,6 +135,7 @@
     <ClInclude Include="blendItem.h" />
     <ClInclude Include="lbpFunction.hpp" />
     <ClInclude Include="main.hpp" />
+    <ClInclude Include="trackImg.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
