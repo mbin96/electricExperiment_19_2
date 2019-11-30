@@ -35,15 +35,15 @@ int learning() {
     }
     
     
-    //cv::VideoCapture mCamera("face.mp4");
-    cv::VideoCapture mCamera(0);
+    cv::VideoCapture mCamera("face.mp4");
+    //cv::VideoCapture mCamera(0);
            
     if (!mCamera.isOpened()) {
         std::cout << "Camera opening failed..." << std::endl;
         system("pause");
         return 0;
     }
-    
+    //png 파일을 alpha 채널 그대로 불러오기 
     Mat kemonoEar = imread("cat_ear.png", cv::IMREAD_UNCHANGED);
     cv::Mat blendItem;
     cv::Mat Image;
@@ -60,7 +60,7 @@ int learning() {
     BlendItem blend;
     while (1) {
         mCamera >> origImg;
-        resize(origImg, origImg, Size(640, 360));
+        resize(origImg, origImg, Size(1280, 720));
 
         //TODO - input from map
         //Mat origImg = imread("photo.jpg", cv::IMREAD_COLOR);
@@ -80,19 +80,35 @@ int learning() {
         modelt.EstimateHeadPose(current_shape, eav);
         modelt.drawPose(Image, current_shape, 50);
 
+        //눈썹 사이 - 이미지 블랜드 되는 중심점 21 22 사이
+        //눈썹 가장 먼 거리 - 이미지 에서 얼굴길이로 지정한 가로길이
+        // 눈썹 중심에서 9번(턱)까지 길이 이미지 세로길이
+        //눈썹 17 - 21, 22 - 26
+        //코끝 30
         int numLandmarks = current_shape.cols / 2;
         if (numLandmarks > 0) {
+            Point facebrowLeft = Point(current_shape.at<float>(17), current_shape.at<float>(17 + numLandmarks));
+            Point facebrowRight = Point(current_shape.at<float>(26), current_shape.at<float>(26 + numLandmarks));
+            Point faceEyeCenter = Point((current_shape.at<float>(21) + current_shape.at<float>(22)) / 2, (current_shape.at<float>(21 + numLandmarks) + current_shape.at<float>(22 + numLandmarks)) / 2);
             faceBottom = Point(current_shape.at<float>(8),current_shape.at<float>(8 + numLandmarks));
-            faceCenter.x = current_shape.at<float>(30);
-            faceCenter.y = current_shape.at<float>(30 + numLandmarks);
+            faceCenter.x = current_shape.at<float>(2)/2 + current_shape.at<float>(14)/2;
+            faceCenter.y = current_shape.at<float>(2 + numLandmarks) / 2 + current_shape.at<float>(14 + numLandmarks) / 2;
             faceLeft = Point(current_shape.at<float>(1), current_shape.at<float>(1 + numLandmarks));
             faceRight = Point(current_shape.at<float>(15), current_shape.at<float>(15 + numLandmarks));
-            faceTop.x = 2 * faceCenter.x - faceBottom.x;
-            faceTop.y = 2 * faceCenter.y - faceBottom.y;
-            faceWidth = sqrt(pow(faceRight.x - faceLeft.x,2) + pow(faceRight.y - faceLeft.y,2));
-            resize(blendItem, blendItem, Size(blendItem.rows *(faceWidth/ itemFaceWidth), blendItem.rows * (faceWidth / itemFaceWidth)));
+            
+            int faceHigh = sqrt(pow(faceEyeCenter.x - current_shape.at<float>(30), 2) + pow(faceEyeCenter.y - current_shape.at<float>(30 + numLandmarks), 2));
 
-            blend.setInput(Image, blendItem, Point(faceTop.x, faceTop.y));
+            // y 더해주는거 얼마나 더해줄지 생각해보기
+            faceTop = faceEyeCenter - Point(-faceCenter.x+faceBottom.x, faceHigh);
+            //faceTop.x = 2 * faceCenter.x - faceBottom.x;
+            faceWidth = sqrt(pow(facebrowLeft.x - facebrowRight.x,2) + pow(facebrowLeft.y - facebrowRight.y,2));
+            //faceTop.y = faceCenter.y - faceWidth / ((faceBottom.y - current_shape.at<float>(30 + numLandmarks))/ (faceBottom.y - faceCenter.y));
+            resize(blendItem, blendItem, Size(blendItem.rows * (faceWidth / itemFaceWidth), blendItem.rows * (cos(eav[0]*3.14 / 180))));
+            Mat rot = getRotationMatrix2D(Point(blendItem.rows / 2, blendItem.cols / 2), -eav[2], 1.0);
+            
+            warpAffine(blendItem, blendItem, rot,Size(blendItem.cols, blendItem.rows),1,BORDER_TRANSPARENT);
+            imshow("a", blendItem);
+            blend.setInput(Image, blendItem, faceTop);
             blend.getBlended(Image);
         }
         for (int j = 0; j < numLandmarks; j++) {
@@ -100,7 +116,7 @@ int learning() {
             int y = current_shape.at<float>(j + numLandmarks);
             std::stringstream ss;
             ss << j;
-            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.5, cv::Scalar(0, 0, 255));
+            cv::putText(Image, ss.str(), cv::Point(x, y), 0.5, 0.3, cv::Scalar(0, 0, 255));
 
             //Mat outImg = cv::Mat::zeros(LBP_INPUT_SIZE, LBP_INPUT_SIZE, CV_8UC1);
 
