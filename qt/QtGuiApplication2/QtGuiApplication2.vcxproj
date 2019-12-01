@@ -93,7 +93,6 @@
     <ClCompile Include="blendItem.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="QtGuiApplication2.cpp" />
-    <ClCompile Include="trackImg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="QtGuiApplication2.h" />

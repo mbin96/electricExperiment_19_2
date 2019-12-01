@@ -31,9 +31,6 @@
     <ClCompile Include="QtGuiApplication2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="trackImg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="blendItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
